@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-from tutor.plugins import OfficialPlugin
 from tutor.commands.cli import main
+from tutor.plugins.v0 import OfficialPlugin
 
 # Manually install plugins (this is for creating the bundle)
 for plugin_name in [
@@ -17,7 +17,7 @@ for plugin_name in [
     "xqueue",
 ]:
     try:
-        OfficialPlugin.load(plugin_name)
+        OfficialPlugin(plugin_name).install()
     except ImportError:
         pass
 

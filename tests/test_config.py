@@ -13,7 +13,7 @@ from tutor.types import Config, get_typed
 
 class ConfigTests(unittest.TestCase):
     def test_version(self) -> None:
-        defaults = tutor_config.get_defaults({})
+        defaults = tutor_config.get_defaults()
         self.assertNotIn("TUTOR_VERSION", defaults)
 
     def test_merge(self) -> None:
@@ -24,7 +24,7 @@ class ConfigTests(unittest.TestCase):
 
     def test_merge_not_render(self) -> None:
         config: Config = {}
-        base = tutor_config.get_base({})
+        base = tutor_config.get_base()
         with patch.object(tutor_config.utils, "random_string", return_value="abcd"):
             tutor_config.merge(config, base)
 

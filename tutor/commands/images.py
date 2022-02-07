@@ -179,7 +179,7 @@ def iter_images(
 def iter_plugin_images(
     config: Config, image: str, hook_name: str
 ) -> Iterator[Tuple[str, str, str]]:
-    for plugin, hook in plugins.iter_hooks(config, hook_name):
+    for plugin, hook in plugins.iter_hooks(hook_name):
         if not isinstance(hook, dict):
             raise exceptions.TutorError(
                 f"Invalid hook '{hook_name}': expected dict, got {hook.__class__}"

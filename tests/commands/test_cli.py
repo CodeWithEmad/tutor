@@ -3,13 +3,13 @@ import unittest
 from click.testing import CliRunner
 
 from tutor.__about__ import __version__
-from tutor.commands.cli import cli, print_help
+from tutor.commands.cli import cli, help_command
 
 
 class CliTests(unittest.TestCase):
     def test_help(self) -> None:
         runner = CliRunner()
-        result = runner.invoke(print_help)
+        result = runner.invoke(help_command)
         self.assertEqual(0, result.exit_code)
         self.assertIsNone(result.exception)
 

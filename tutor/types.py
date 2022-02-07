@@ -11,14 +11,12 @@ Config = Dict[str, ConfigValue]
 def cast_config(config: Any) -> Config:
     if not isinstance(config, dict):
         raise exceptions.TutorError(
-            "Invalid configuration: expected dict, got {}".format(config.__class__)
+            f"Invalid configuration: expected dict, got {config.__class__}"
         )
     for key in config.keys():
         if not isinstance(key, str):
             raise exceptions.TutorError(
-                "Invalid configuration: expected str, got {} for key '{}'".format(
-                    key.__class__, key
-                )
+                f"Invalid configuration: expected str, got {key.__class__} for key '{key}'"
             )
     return config
 
@@ -32,8 +30,6 @@ def get_typed(
     value = config.get(key, default)
     if not isinstance(value, expected_type):
         raise exceptions.TutorError(
-            "Invalid config entry: expected {}, got {} for key '{}'".format(
-                expected_type.__name__, value.__class__, key
-            )
+            "Invalid config entry: expected {expected_type.__name__}, got {value.__class__} for key '{key}'"
         )
     return value

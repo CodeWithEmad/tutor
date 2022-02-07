@@ -5,9 +5,11 @@ from typing import List
 
 import click
 
-from .. import config as tutor_config
-from .. import env as tutor_env
-from .. import exceptions, fmt, plugins
+from tutor import config as tutor_config
+from tutor import env as tutor_env
+from tutor import exceptions, fmt, plugins
+from tutor.plugins.v0 import DictPlugin
+
 from .context import Context
 
 
@@ -24,11 +26,9 @@ def plugins_command() -> None:
 
 
 @click.command(name="list", help="List installed plugins")
-@click.pass_obj
-def list_command(context: Context) -> None:
-    config = tutor_config.load_full(context.root)
+def list_command() -> None:
     for plugin in plugins.iter_installed():
-        status = "" if plugins.is_enabled(config, plugin.name) else " (disabled)"
+        status = "" if plugins.is_enabled(plugin.name) else " (disabled)"
         print(f"{plugin.name}=={plugin.version}{status}")
 
 
@@ -55,7 +55,7 @@ def enable(context: Context, plugin_names: List[str]) -> None:
 def disable(context: Context, plugin_names: List[str]) -> None:
     config = tutor_config.load_minimal(context.root)
     disable_all = "all" in plugin_names
-    for plugin in plugins.iter_enabled(config):
+    for plugin in plugins.iter_enabled():
         if disable_all or plugin.name in plugin_names:
             fmt.echo_info(f"Disabling plugin {plugin.name}...")
             for key, value in plugin.config_set.items():
@@ -84,23 +84,23 @@ def delete_plugin(root: str, name: str) -> None:
 @click.command(
     short_help="Print the location of yaml-based plugins",
     help=f"""Print the location of yaml-based plugins. This location can be manually
-defined by setting the {plugins.DictPlugin.ROOT_ENV_VAR_NAME} environment variable""",
+defined by setting the {DictPlugin.ROOT_ENV_VAR_NAME} environment variable""",
 )
 def printroot() -> None:
-    fmt.echo(plugins.DictPlugin.ROOT)
+    fmt.echo(DictPlugin.ROOT)
 
 
 @click.command(
     short_help="Install a plugin",
     help=f"""Install a plugin, either from a local YAML file or a remote, web-hosted
-location. The plugin will be installed to {plugins.DictPlugin.ROOT_ENV_VAR_NAME}.""",
+location. The plugin will be installed to {DictPlugin.ROOT_ENV_VAR_NAME}.""",
 )
 @click.argument("location")
 def install(location: str) -> None:
     basename = os.path.basename(location)
     if not basename.endswith(".yml"):
         basename += ".yml"
-    plugin_path = os.path.join(plugins.DictPlugin.ROOT, basename)
+    plugin_path = os.path.join(DictPlugin.ROOT, basename)
 
     if location.startswith("http"):
         # Download file
@@ -114,22 +114,11 @@ def install(location: str) -> None:
         raise exceptions.TutorError(f"No plugin found at {location}")
 
     # Save file
-    if not os.path.exists(plugins.DictPlugin.ROOT):
-        os.makedirs(plugins.DictPlugin.ROOT)
+    if not os.path.exists(DictPlugin.ROOT):
+        os.makedirs(DictPlugin.ROOT)
     with open(plugin_path, "w", newline="\n", encoding="utf-8") as f:
         f.write(content)
     fmt.echo_info(f"Plugin installed at {plugin_path}")
-
-
-def add_plugin_commands(command_group: click.Group) -> None:
-    """
-    Add commands provided by all plugins to the given command group. Each command is
-    added with a name that is equal to the plugin name.
-    """
-    for plugin in plugins.iter_installed():
-        if isinstance(plugin.command, click.Command):
-            plugin.command.name = plugin.name
-            command_group.add_command(plugin.command)
 
 
 plugins_command.add_command(list_command)

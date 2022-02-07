@@ -39,7 +39,7 @@ class BaseJobRunner:
     def iter_plugin_hooks(
         self, hook: str
     ) -> Iterator[Tuple[str, Union[Dict[str, str], List[str]]]]:
-        yield from plugins.iter_hooks(self.config, hook)
+        yield from plugins.iter_hooks(hook)
 
 
 class BaseComposeJobRunner(BaseJobRunner):

@@ -1,7 +1,9 @@
 import os
 
+from tutor.plugins import actions
 from . import env, exceptions, fmt, plugins, serialize, utils
 from .types import Config, cast_config
+
 
 CONFIG_FILENAME = "config.yml"
 
@@ -58,7 +60,7 @@ def update_with_base(config: Config) -> None:
 
     Note that configuration entries are unrendered at this point.
     """
-    base = get_base(config)
+    base = get_base()
     merge(config, base)
 
 
@@ -68,7 +70,7 @@ def update_with_defaults(config: Config) -> None:
 
     Note that configuration entries are unrendered at this point.
     """
-    defaults = get_defaults(config)
+    defaults = get_defaults()
     merge(config, defaults)
 
 
@@ -100,7 +102,7 @@ def get_user(root: str) -> Config:
     return config
 
 
-def get_base(config: Config) -> Config:
+def get_base() -> Config:
     """
     Load the base configuration.
 
@@ -109,7 +111,7 @@ def get_base(config: Config) -> Config:
     base = get_template("base.yml")
 
     # Load base values from plugins
-    for plugin in plugins.iter_enabled(config):
+    for plugin in plugins.iter_enabled():
         # Add new config key/values
         for key, value in plugin.config_add.items():
             new_key = plugin.config_key(key)
@@ -122,7 +124,7 @@ def get_base(config: Config) -> Config:
     return base
 
 
-def get_defaults(config: Config) -> Config:
+def get_defaults() -> Config:
     """
     Get default configuration, including from plugins.
 
@@ -130,7 +132,7 @@ def get_defaults(config: Config) -> Config:
     """
     defaults = get_template("defaults.yml")
 
-    for plugin in plugins.iter_enabled(config):
+    for plugin in plugins.iter_enabled():
         # Create new defaults
         for key, value in plugin.config_defaults.items():
             defaults[plugin.config_key(key)] = value
@@ -153,7 +155,7 @@ def get_yaml_file(path: str) -> Config:
     """
     Load config from yaml file.
     """
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         config = serialize.load(f.read())
     return cast_config(config)
 
@@ -254,10 +256,22 @@ def convert_json2yml(root: str) -> None:
 def save_config_file(root: str, config: Config) -> None:
     path = config_path(root)
     utils.ensure_file_directory_exists(path)
-    with open(path, "w") as of:
+    with open(path, "w", encoding="utf-8") as of:
         serialize.dump(config, of)
     fmt.echo_info(f"Configuration saved to {path}")
 
 
 def config_path(root: str) -> str:
     return os.path.join(root, CONFIG_FILENAME)
+
+
+@actions.add("load_root")
+def _on_load_root(root: str) -> None:
+    # TODO there is a bug here. Since we are only loading the list of plugins
+    # from the user configuration, we may not have access to the plugins from
+    # base.yml. This is for instance the case when there is no user
+    # configuration. But we can't use load_minimal, because that would require
+    # to load enabled plugins. At this stage, the enabled plugins are not
+    # loaded, yet.
+    config = get_user(root)
+    actions.do_action("load_user_config", config)

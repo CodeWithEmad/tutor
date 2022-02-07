@@ -49,6 +49,9 @@ test-k8s: ## Validate the k8s format with kubectl. Not part of the standard test
 format: ## Format code automatically
 	black $(BLACK_OPTS)
 
+isort: ##  Sort imports. This target is not mandatory because the output may be incompatible with black formatting. Provided for convenience purposes.
+	isort --skip=templates ${SRC_DIRS}
+
 bootstrap-dev: ## Install dev requirements
 	pip install .
 	pip install -r requirements/dev.txt

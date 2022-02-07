@@ -5,9 +5,10 @@ from typing import Any, Iterable, List, Optional, Type, Union
 import jinja2
 import pkg_resources
 
-from . import exceptions, fmt, plugins, utils
-from .__about__ import __app__, __version__
-from .types import Config, ConfigValue
+from tutor import exceptions, fmt, plugins, utils
+from tutor.plugins import filters
+from tutor.__about__ import __app__, __version__
+from tutor.types import Config, ConfigValue
 
 TEMPLATES_ROOT = pkg_resources.resource_filename("tutor", "templates")
 VERSION_FILENAME = "version"
@@ -27,11 +28,7 @@ class Renderer:
     def instance(cls: Type["Renderer"], config: Config) -> "Renderer":
         # Load template roots: these are required to be able to use
         # {% include .. %} directives
-        template_roots = [TEMPLATES_ROOT]
-        for plugin in plugins.iter_enabled(config):
-            if plugin.templates_root:
-                template_roots.append(plugin.templates_root)
-
+        template_roots = filters.apply_filter("env:templates:roots", [TEMPLATES_ROOT])
         return cls(config, template_roots, ignore_folders=["partials"])
 
     def __init__(
@@ -47,6 +44,7 @@ class Renderer:
 
         # Create environment
         environment = JinjaEnvironment(template_roots)
+        # TODO add these filters and globals... to a filter
         environment.filters["common_domain"] = utils.common_domain
         environment.filters["encrypt"] = utils.encrypt
         environment.filters["list_if"] = utils.list_if
@@ -134,7 +132,7 @@ class Renderer:
         Render calls to {{ patch("...") }} in environment templates from plugin patches.
         """
         patches = []
-        for plugin, patch in plugins.iter_patches(self.config, name):
+        for plugin, patch in plugins.iter_patches(name):
             try:
                 patches.append(self.render_str(patch))
             except exceptions.TutorError:
@@ -209,9 +207,9 @@ def save(root: str, config: Config) -> None:
     ]:
         save_all_from(prefix, root_env, config)
 
-    for plugin in plugins.iter_enabled(config):
+    for plugin in plugins.iter_enabled():
         if plugin.templates_root:
-            save_plugin_templates(plugin, root, config)
+            save_plugin_templates(plugin.name, root, config)
 
     upgrade_obsolete(root)
     fmt.echo_info(f"Environment generated in {base_dir(root)}")
@@ -223,16 +221,14 @@ def upgrade_obsolete(_root: str) -> None:
     """
 
 
-def save_plugin_templates(
-    plugin: plugins.BasePlugin, root: str, config: Config
-) -> None:
+def save_plugin_templates(plugin_name: str, root: str, config: Config) -> None:
     """
     Save plugin templates to plugins/<plugin name>/*.
     Only the "apps" and "build" subfolders are rendered.
     """
     plugins_root = pathjoin(root, "plugins")
     for subdir in ["apps", "build"]:
-        subdir_path = os.path.join(plugin.name, subdir)
+        subdir_path = os.path.join(plugin_name, subdir)
         save_all_from(subdir_path, plugins_root, config)
 
 

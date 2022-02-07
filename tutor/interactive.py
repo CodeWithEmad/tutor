@@ -18,7 +18,7 @@ def load_user_config(root: str, interactive: bool = True) -> Config:
 
 
 def ask_questions(config: Config) -> None:
-    defaults = tutor_config.get_defaults(config)
+    defaults = tutor_config.get_defaults()
     run_for_prod = config.get("LMS_HOST") != "local.overhang.io"
     run_for_prod = click.confirm(
         fmt.question(
@@ -38,7 +38,7 @@ def ask_questions(config: Config) -> None:
         )
         for k, v in dev_values.items():
             config[k] = v
-            fmt.echo_info("    {} = {}".format(k, v))
+            fmt.echo_info(f"    {k} = {v}")
 
     if run_for_prod:
         ask("Your website domain name for students (LMS)", "LMS_HOST", config, defaults)

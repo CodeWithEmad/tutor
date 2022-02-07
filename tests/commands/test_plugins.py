@@ -24,7 +24,7 @@ class PluginsTests(unittest.TestCase):
             self.assertIsNone(result.exception)
             self.assertTrue(result.output)
 
-    @patch.object(plugins.BasePlugin, "iter_installed", return_value=[])
+    @patch.object(plugins, "iter_installed", return_value=[])
     def test_plugins_list(self, _iter_installed: Mock) -> None:
         with temporary_root() as root:
             context = TestContext(root)

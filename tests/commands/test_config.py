@@ -21,55 +21,55 @@ class ConfigTests(unittest.TestCase):
             context = TestContext(root)
             runner = CliRunner()
             result = runner.invoke(config_command, ["save"], obj=context)
-            self.assertEqual(0, result.exit_code)
-            self.assertFalse(result.exception)
+        self.assertFalse(result.exception)
+        self.assertEqual(0, result.exit_code)
 
     def test_config_save_interactive(self) -> None:
         with temporary_root() as root:
             context = TestContext(root)
             runner = CliRunner()
             result = runner.invoke(config_command, ["save", "-i"], obj=context)
-            self.assertEqual(0, result.exit_code)
-            self.assertFalse(result.exception)
+        self.assertFalse(result.exception)
+        self.assertEqual(0, result.exit_code)
 
     def test_config_save_skip_update(self) -> None:
         with temporary_root() as root:
             context = TestContext(root)
             runner = CliRunner()
             result = runner.invoke(config_command, ["save", "-e"], obj=context)
-            self.assertEqual(0, result.exit_code)
-            self.assertFalse(result.exception)
+        self.assertFalse(result.exception)
+        self.assertEqual(0, result.exit_code)
 
     def test_config_save_set_value(self) -> None:
         with temporary_root() as root:
             context = TestContext(root)
             runner = CliRunner()
-            result = runner.invoke(
+            result1 = runner.invoke(
                 config_command, ["save", "-s", "key=value"], obj=context
             )
-            self.assertEqual(0, result.exit_code)
-            self.assertFalse(result.exception)
-            result = runner.invoke(config_command, ["printvalue", "key"], obj=context)
-            self.assertIn("value", result.output)
+            result2 = runner.invoke(config_command, ["printvalue", "key"], obj=context)
+        self.assertFalse(result1.exception)
+        self.assertEqual(0, result1.exit_code)
+        self.assertIn("value", result2.output)
 
     def test_config_save_unset_value(self) -> None:
         with temporary_root() as root:
             context = TestContext(root)
             runner = CliRunner()
-            result = runner.invoke(config_command, ["save", "-U", "key"], obj=context)
-            self.assertEqual(0, result.exit_code)
-            self.assertFalse(result.exception)
-            result = runner.invoke(config_command, ["printvalue", "key"], obj=context)
-            self.assertEqual(1, result.exit_code)
+            result1 = runner.invoke(config_command, ["save", "-U", "key"], obj=context)
+            result2 = runner.invoke(config_command, ["printvalue", "key"], obj=context)
+        self.assertFalse(result1.exception)
+        self.assertEqual(0, result1.exit_code)
+        self.assertEqual(1, result2.exit_code)
 
     def test_config_printroot(self) -> None:
         with temporary_root() as root:
             context = TestContext(root)
             runner = CliRunner()
             result = runner.invoke(config_command, ["printroot"], obj=context)
-            self.assertEqual(0, result.exit_code)
-            self.assertFalse(result.exception)
-            self.assertIn(context.root, result.output)
+        self.assertFalse(result.exception)
+        self.assertEqual(0, result.exit_code)
+        self.assertIn(context.root, result.output)
 
     def test_config_printvalue(self) -> None:
         with temporary_root() as root:
@@ -79,9 +79,9 @@ class ConfigTests(unittest.TestCase):
             result = runner.invoke(
                 config_command, ["printvalue", "MYSQL_ROOT_PASSWORD"], obj=context
             )
-            self.assertEqual(0, result.exit_code)
-            self.assertFalse(result.exception)
-            self.assertTrue(result.output)
+        self.assertFalse(result.exception)
+        self.assertEqual(0, result.exit_code)
+        self.assertTrue(result.output)
 
     def test_config_render(self) -> None:
         with tempfile.TemporaryDirectory() as dest:
@@ -92,8 +92,8 @@ class ConfigTests(unittest.TestCase):
                 result = runner.invoke(
                     config_command, ["render", context.root, dest], obj=context
                 )
-                self.assertEqual(0, result.exit_code)
-                self.assertFalse(result.exception)
+        self.assertEqual(0, result.exit_code)
+        self.assertFalse(result.exception)
 
     def test_config_render_with_extra_configs(self) -> None:
         with tempfile.TemporaryDirectory() as dest:
@@ -112,5 +112,5 @@ class ConfigTests(unittest.TestCase):
                     ],
                     obj=context,
                 )
-                self.assertEqual(0, result.exit_code)
-                self.assertFalse(result.exception)
+        self.assertEqual(0, result.exit_code)
+        self.assertFalse(result.exception)
